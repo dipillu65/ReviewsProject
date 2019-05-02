@@ -7,7 +7,7 @@ var kindleRevs = require('./kindle_reviews_reduced.json');
 // init the data store
 db.defaults({ reviews: []}).write();
 
-// [START language_quickstart]
+
 async function quickstart(text) {
     // Imports the Google Cloud client library
     const language = require('@google-cloud/language');
@@ -22,14 +22,30 @@ async function quickstart(text) {
       type: 'PLAIN_TEXT',
 
     };
-    var results = [];
+    var results = {};
+    var entitiesArr = []
     // Detects the sentiment of the text
     const [result] = await client.analyzeSentiment({document: document});
     const sentiment = result.documentSentiment;
-    results.push(sentiment.score)
-    results.push(sentiment.magnitude)
-    console.log(results)
-    return sentiment
+
+    // Detects sentiment of entities in the document
+    const [result2] = await client.analyzeEntitySentiment({document});
+    const entities = result2.entities;
+    
+    entities.forEach(entity => {
+      entitiesArr.push({
+        name : entity.name,
+        type : entity.type,
+        score : entity.sentiment.score,
+        salience : entity.salience});
+    });
+    
+    results.entities = entitiesArr;
+    results.score = sentiment.score;
+    results.magnitude = sentiment.magnitude;
+    console.log(results);
+    return results;
+
 }
 
 
@@ -38,9 +54,12 @@ var newReview = function (data,sentiment){
     console.log("newReview called")
     var review = {
         asin : data.asin,
+        reviewerID : data.reviewerID,
         date : data.reviewTime, //check the key for the date
-        score : sentiment.score,
-        magnitude : sentiment.magnitude
+        sentimentScore : sentiment.score,
+        magnitude : sentiment.magnitude,
+        entities: sentiment.entities,
+      
     }
     //Add post to db
     db.get('reviews')

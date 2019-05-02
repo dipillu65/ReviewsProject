@@ -1,6 +1,6 @@
 <html>
     <head>
-      <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>\
+      <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
       <script type="text/javascript" src="./db.js"></script>
     </head>
 
@@ -27,7 +27,7 @@ google.charts.setOnLoadCallback(drawTable);
 //OBTAIN SENTIMENT SCORE AND ASIN FOR CHART
 var sentiments = reviews.map((element)=>{
   date = new Date (element.date);
-  return [date, element.score];
+  return [date, element.sentimentScore];
 })
 sentiments = sentiments.sort((a,b) => {return a[0]-b[0]});
 
@@ -38,6 +38,7 @@ reviews.forEach( reviews => {
   Ids.push(reviews.asin);
 })  
 UniqueIds = [...new Set(Ids)]
+
 //Loop through UniqueIds array and populate dropdown
 for(var i = 0; i < UniqueIds.length; i++){
   var opt = UniqueIds[i];
@@ -49,6 +50,56 @@ for(var i = 0; i < UniqueIds.length; i++){
 
 var chart;
 var options;
+
+//ENTITY CALCULATIONS
+var allBookEntities = UniqueIds.map((book) => {
+    var bookReviews = reviews.filter((rev) => {return rev.asin === book});
+    var entityData = {};
+    entityData.asin = book;
+    var bookEntities = [];
+    bookReviews.forEach((book) => {
+        book.entities.forEach((entity) => {
+            var found = false;
+            for(var i = 0; i < bookEntities.length; i++) {
+                if (bookEntities[i].name === entity.name) {
+                    found = true;
+                    var sali = entity.salience;
+                    bookEntities[i].count += 1;
+                    bookEntities[i].weight += entity.score * sali;
+                    bookEntities[i].saliSum += sali;
+                    bookEntities[i].salience = bookEntities[i].saliSum/(bookEntities[i].count);
+                    bookEntities[i].score = bookEntities[i].weight/bookEntities[i].saliSum;
+                    console.log(bookEntities[i].salience)
+                    break;
+                }
+            }
+            if(!found){
+                entity.count = 1;
+                entity.weight = entity.salience * entity.score;
+                entity.saliSum = entity.salience;
+                bookEntities.push(entity);
+            }
+        });
+    }); 
+    bookEntities = bookEntities.map((book) => {
+        return [book.name, book.score, {v:book.salience,f: Math.round(book.salience*10000)/100 + '%'}]
+    });
+    entityData.entities = bookEntities;
+    return entityData
+});
+
+
+
+
+
+
+
+
+
+
+
+
+
 //DRAW CHART
 function drawBasic() {
   var data = new google.visualization.DataTable();
@@ -91,7 +142,7 @@ var results = [];
  console.log(selectedID);
  reviews.forEach(item => {
    if (item.asin == selectedID){
-     var element = [new Date (item.date),item.score]
+     var element = [new Date (item.date),item.sentimentScore]
      results.push(element)
    }
  })
@@ -102,39 +153,30 @@ var results = [];
   data.addColumn('number', 'Product');
   data.addRows(results);
 
-
-
   chart.draw( data, options);
+
+  var data = new google.visualization.DataTable();
+
+  data.addColumn('string', 'Entity');
+  data.addColumn('number', 'Score');
+  data.addColumn('number', 'Salience');
+  var ind = allBookEntities.findIndex((item)=>{return item.asin == selectedID});
+  console.log(ind);
+  data.addRows(allBookEntities[ind].entities);
+
+  var option = {
+title: 'Entities',
+  width: 300,
+  height: 500
+};
+  var table = new google.visualization.Table(document.getElementById('table_div'));
+
+  table.draw(data, option);
 }
 
 //DRAW SENTIMENT TABLE
 function drawTable() {
-        var data = new google.visualization.DataTable();
-        data.addColumn('string', 'Entity');
-        data.addColumn('number', 'Popularity');
-        data.addColumn('boolean', 'Sentiment');
-        data.addRows([
-          ['Mike',  {v: 10000, f: '$10,000'}, true],
-          ['Jim',   {v:8000,   f: '$8,000'},  false],
-          ['Alice', {v: 12500, f: '$12,500'}, true],
-          ['Alice', {v: 12500, f: '$12,500'}, true],
-          ['Alice', {v: 12500, f: '$12,500'}, true],
-          ['Alice', {v: 12500, f: '$12,500'}, true],
-          ['Alice', {v: 12500, f: '$12,500'}, true],
-          ['Alice', {v: 12500, f: '$12,500'}, true],
-          ['Alice', {v: 12500, f: '$12,500'}, true],
-          ['Alice', {v: 12500, f: '$12,500'}, true],
-          ['Bob',   {v: 7000,  f: '$7,000'},  true]
-        ]);
-
-        var option = {
-      title: 'Entities',
-        width: 300,
-        height: 500
-      };
-        var table = new google.visualization.Table(document.getElementById('table_div'));
-
-        table.draw(data, option);
+        
     }
 
 </script>
