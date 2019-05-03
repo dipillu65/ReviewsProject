@@ -6,15 +6,25 @@
 
     <body>
         <h1>Review Analyzer</h1>
+        <h2>Find a book</h2>
         <select id="selectBook" onchange="displayData()">
                 <option>Choose a book</option>
         </select>
+
+      <!--Chart div for book-->
       <table class="columns">
         <tr>
           <td><div id="chart_div" style="border: 1px solid #ccc"></div></td>
           <td><div id="table_div" style="border: 1px solid #ccc"></div></td>
+      <!--Chart div for reviewer-->
+          <td><div id="reviewer_chart_div" style="border: 1px solid #ccc"></div></td>
+          <td><div id="reviewer_table_div" style="border: 1px solid #ccc"></div></td>
         </tr>
       </table>
+      <h2>Find a Reviewer</h2>
+      <select id="selectReviewer" onchange="displayRevData()">
+        <option>Choose a Reviewer </option>
+</select>
     </body>
 
 <script>  
@@ -22,16 +32,17 @@ google.charts.load('current', {packages: ['corechart']});
 google.charts.load('current', {packages:['table']});
 google.charts.setOnLoadCallback(drawBasic);
 google.charts.setOnLoadCallback(drawTable);
+google.charts.setOnLoadCallback(displayRevData);
 
 
-//OBTAIN SENTIMENT SCORE AND ASIN FOR CHART
+//OBTAIN SENTIMENT SCORE AND ASIN FOR CHART **Not needed
 var sentiments = reviews.map((element)=>{
   date = new Date (element.date);
   return [date, element.sentimentScore];
 })
 sentiments = sentiments.sort((a,b) => {return a[0]-b[0]});
 
-//POPULATE DROPDOWN
+//POPULATE DROPDOWN FOR BOOK 
 var select = document.getElementById("selectBook");
 var Ids = [];   
 reviews.forEach( reviews => {
@@ -48,10 +59,27 @@ for(var i = 0; i < UniqueIds.length; i++){
   select.appendChild(el)
 }
 
+
+// POPULATE REVIEWER DROPDOWN
+var reviewerSelect = document.getElementById("selectReviewer");  // Add a new element for reviewer selection
+var Ids = reviews.map((review) => {
+  return review.reviewerID;
+});
+reviewerIds = [...new Set(Ids)]
+
+//Loop through reviewerIds array and populate reviewer dropdown
+for(var i = 0; i < reviewerIds.length; i++){
+  var opt = reviewerIds[i];
+  var el = document.createElement("option");
+  el.textContent = opt; //define text content of element to be reviewerIds elements
+  el.value = opt;
+  reviewerSelect.appendChild(el)
+}
+
 var chart;
 var options;
 
-//ENTITY CALCULATIONS
+//ENTITY ANALYSIS CALCULATIONS
 var allBookEntities = UniqueIds.map((book) => {
     var bookReviews = reviews.filter((rev) => {return rev.asin === book});
     var entityData = {};
@@ -80,7 +108,7 @@ var allBookEntities = UniqueIds.map((book) => {
                 bookEntities.push(entity);
             }
         });
-    }); 
+    });
     bookEntities = bookEntities.map((book) => {
         return [book.name, book.score, {v:book.salience,f: Math.round(book.salience*10000)/100 + '%'}]
     });
@@ -89,18 +117,7 @@ var allBookEntities = UniqueIds.map((book) => {
 });
 
 
-
-
-
-
-
-
-
-
-
-
-
-//DRAW CHART
+//DRAW INITIAL GRAPH
 function drawBasic() {
   var data = new google.visualization.DataTable();
   data.addColumn('date', 'X');
@@ -133,7 +150,8 @@ function drawBasic() {
   chart.draw(data, options);
 }
 
-//UPDATE CHART
+
+//UPDATE GRAPH
 function displayData(){
 var results = [];
   //Get selected option from dropdown
@@ -177,7 +195,17 @@ title: 'Entities',
 //DRAW SENTIMENT TABLE
 function drawTable() {
         
-    }
+}
+
+
+//DRAW REVIEWER GRAPH
+function displayRevData(){
+  var results = [];
+  var selectedID = document.getElementById('selectBook').options[document.getElementById('selectBook').selectedIndex].value;
+
+
+
+}
 
 </script>
 </html>
