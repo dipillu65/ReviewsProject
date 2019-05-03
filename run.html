@@ -16,14 +16,18 @@
         <tr>
           <td><div id="chart_div" style="border: 1px solid #ccc"></div></td>
           <td><div id="table_div" style="border: 1px solid #ccc"></div></td>
-      <!--Chart div for reviewer-->
-          <td><div id="reviewer_chart_div" style="border: 1px solid #ccc"></div></td>
-          <td><div id="reviewer_table_div" style="border: 1px solid #ccc"></div></td>
         </tr>
       </table>
       <h2>Find a Reviewer</h2>
       <select id="selectReviewer" onchange="displayRevData()">
         <option>Choose a Reviewer </option>
+        <table class="columns">
+          <tr>
+        <!--Chart div for reviewer-->
+        <td><div id="reviewer_chart_div" style="border: 1px solid #ccc"></div></td>
+          <td><div id="reviewer_table_div" style="border: 1px solid #ccc"></div></td>
+          </tr>
+          </table>
 </select>
     </body>
 
@@ -58,7 +62,6 @@ for(var i = 0; i < UniqueIds.length; i++){
   el.value = opt;
   select.appendChild(el)
 }
-
 
 // POPULATE REVIEWER DROPDOWN
 var reviewerSelect = document.getElementById("selectReviewer");  // Add a new element for reviewer selection
