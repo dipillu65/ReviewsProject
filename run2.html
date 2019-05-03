@@ -1,0 +1,59 @@
+<script>
+
+// POPULATE REVIEWER DROPDOWN
+var reviewerSelect = document.getElementById("selectReviewer");  // Add a new element for reviewer selection
+var Ids = reviews.map((review) => {
+  return review.reviewerID;
+});
+reviewerIds = [...new Set(Ids)]
+
+//Loop through reviewerIds array and populate reviewer dropdown
+for(var i = 0; i < reviewerIds.length; i++){
+  var opt = reviewerIds[i];
+  var el = document.createElement("option");
+  el.textContent = opt; //define text content of element to be reviewerIds elements
+  el.value = opt;
+  reviewerSelect.appendChild(el)
+}
+
+var chart;
+var options;
+
+//ENTITY CALCULATIONS
+var allReviewerEntities = reviewerIds.map((user) => {
+    var userReviews = reviews.filter((rev) => {return rev.reviewerID === user});
+    var userData = {};
+    userData.reviewerID = user;
+    var userEntities = [];
+    userReviews.forEach((user) => {
+        user.entities.forEach((entity) => {
+            var found = false;
+            for(var i = 0; i < userEntities.length; i++) {
+                if (userEntities[i].name === entity.name) {
+                    found = true;
+                    var sali = entity.salience;
+                    userEntities[i].count += 1;
+                    userEntities[i].weight += entity.score * sali;
+                    userEntities[i].saliSum += sali;
+                    userEntities[i].salience = userEntities[i].saliSum/(userEntities[i].count);
+                    userEntities[i].score = userEntities[i].weight/userEntities[i].saliSum;
+                    console.log(userEntities[i].salience)
+                    break;
+                }
+            }
+            if(!found){
+                entity.count = 1;
+                entity.weight = entity.salience * entity.score;
+                entity.saliSum = entity.salience;
+                userEntities.push(entity);
+            }
+        });
+    }); 
+    userEntities = userEntities.map((user) => {
+        return [user.name, user.score, {v:user.salience,f: Math.round(user.salience*10000)/100 + '%'}]
+    });
+    userData.entities = userEntities;
+    return userData
+});
+
+</script>
