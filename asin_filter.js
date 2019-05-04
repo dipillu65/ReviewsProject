@@ -3,7 +3,7 @@ var fs      = require('lowdb/adapters/FileSync');
 var adapter = new fs('complete.json');
 var db      = low(adapter);
 var kindleRevs = require('./kindle_reviews_reduced.json');
-var AsinTitles = require('./ASINTITLES.json');
+var AsinTitles = require('./asin_titles.json');
 
 // init the data store for complete reviews
 db.defaults({ completeRevs: []}).write();
