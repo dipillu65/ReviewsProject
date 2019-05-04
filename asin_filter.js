@@ -26,7 +26,6 @@ kindleRevs.forEach(el =>{
     for (i=0; i< Asin.length; i++){
     count2 ++;
         if( el.asin === Asin[i]){
-
             filtered.push({
                 asin : el.asin,
                 title : search(Asin[i],AsinTitles),
@@ -36,10 +35,7 @@ kindleRevs.forEach(el =>{
                 summary : el.summary,
                 overall : el.overall,
                 reviewText : el.reviewText,
-
             });
-            
-
         }
     }
 })
