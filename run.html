@@ -2,7 +2,7 @@
     <head>
         <!--ACCESS GOOGLE CHARTS AND OTHER DEPENDENTS-->
         <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
-        <script type="text/javascript" src="./db.js"></script>
+        <script type="text/javascript" src="./data.js"></script>
     </head>
 
     <body>
@@ -34,32 +34,33 @@
 
 <script>
 
-// DISPLAY CHARTS **need to edit this; may not need
-google.charts.load('current', {packages: ['corechart']});
-google.charts.load('current', {packages:['table']});
 
-//OBTAIN SENTIMENT SCORE AND ASIN FOR CHART **Not needed
-var sentiments = reviews.map((element)=>{
-    date = new Date (element.date);
-    return [date, element.sentimentScore];
-})
-sentiments = sentiments.sort((a,b) => {return a[0]-b[0]});
+// DISPLAY CHARTS
+google.charts.load('current', {packages: ['corechart','table']});
 
-//POPULATE BOOK DROPDOWN
+
+// POPULATE BOOK DROPDOWN
 var select = document.getElementById("selectBook");
+// EXTRACT ASIN NUMBERS
 var Ids = reviews.map((review) => {
     return review.asin;
-})  
+});
+// EXTRACT BOOK TITLES
+var titles = reviews.map((review) => {
+    return review.title;
+});
 uniqueIds = [...new Set(Ids)]
+bookTitles = [...new Set(titles)];
 
-//LOOP THORUGH uniqueIds TO POPULATE DROPDOWN
-for(var i = 0; i < uniqueIds.length; i++){
-    var opt = uniqueIds[i];
+// LOOP THORUGH bookTitles TO POPULATE DROPDOWN
+for(var i = 0; i < bookTitles.length; i++){
+    var opt = bookTitles[i];
     var el = document.createElement("option");
-    el.textContent = opt; //define text content of element to be uniqueIds elements
+    el.textContent = opt; //define text content of element to be bookTitles elements
     el.value = opt;
     select.appendChild(el)
 }
+
 
 // POPULATE REVIEWER DROPDOWN
 var userSelect = document.getElementById("selectReviewer");
@@ -68,7 +69,7 @@ var Ids = reviews.map((review) => {
 });
 reviewerIds = [...new Set(Ids)]
 
-//Loop through reviewerIds array and populate reviewer dropdown
+//LOOP THROUGH reviewerIds TO POPULATE DROPDOWN
 for(var i = 0; i < reviewerIds.length; i++){
     var opt = reviewerIds[i];
     var el = document.createElement("option");
@@ -77,6 +78,7 @@ for(var i = 0; i < reviewerIds.length; i++){
     userSelect.appendChild(el)
 }
 
+// INITIALIZE CHART SETTINGS
 var bookChart;
 var reviewerChart;
 var options = {
@@ -141,6 +143,7 @@ var allReviewerEntities = reviewerIds.map((user) => {
     var userReviews = reviews.filter((rev) => {return rev.reviewerID === user});
     var userData = {};
     userData.reviewerID = user;
+    userData.numBooksRead = userReviews.length;
     var userEntities = [];
     userReviews.forEach((user) => {
         user.entities.forEach((entity) => {
@@ -172,7 +175,7 @@ var allReviewerEntities = reviewerIds.map((user) => {
     userData.entities = userEntities;
     return userData
 });
-
+allReviewerEntities = allReviewerEntities.sort((a,b)=>{return b.numBooksRead - a.numBooksRead});
 
 //UPDATE GRAPH
 function displayData(){
@@ -180,6 +183,7 @@ function displayData(){
     var results = [];
     //Get selected option from dropdown
     var selectedID = document.getElementById('selectBook').options[document.getElementById('selectBook').selectedIndex].value;
+    selectedID = uniqueIds[bookTitles.findIndex((item)=>{return item === selectedID})];
     //Function to filter out revelant data from json file
     console.log(selectedID);
     reviews.forEach(item => {
