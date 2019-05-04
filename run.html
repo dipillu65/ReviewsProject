@@ -30,6 +30,10 @@
                 <td><div id="reviewer_table_div" style="border: 1px solid #ccc"></div></td>
             </tr>
         </table>
+
+        <!--MATCH CALCULATE BUTTON-->
+        <h1>Book Recommender</h1>
+        <button onclick="checkMatch()">Will you like this book?</button>
     </body>
 
 <script>
@@ -177,17 +181,23 @@ var allReviewerEntities = reviewerIds.map((user) => {
 });
 allReviewerEntities = allReviewerEntities.sort((a,b)=>{return b.numBooksRead - a.numBooksRead});
 
-//UPDATE GRAPH
+// Initialize selected book and user ids
+var bookID;
+var userID;
+var bookEntities;
+var userEntities;
+
+// UPDATE GRAPH
 function displayData(){
 
     var results = [];
-    //Get selected option from dropdown
-    var selectedID = document.getElementById('selectBook').options[document.getElementById('selectBook').selectedIndex].value;
-    selectedID = uniqueIds[bookTitles.findIndex((item)=>{return item === selectedID})];
-    //Function to filter out revelant data from json file
-    console.log(selectedID);
+    // Get selected option from dropdown
+    bookID = document.getElementById('selectBook').options[document.getElementById('selectBook').selectedIndex].value;
+    bookID = uniqueIds[bookTitles.findIndex((item)=>{return item === bookID})];
+    // Loop to filter out revelant data from json file
+    console.log(bookID);
     reviews.forEach(item => {
-        if (item.asin == selectedID){
+        if (item.asin == bookID){
             var element = [new Date (item.date),item.sentimentScore]
             results.push(element)
         }
@@ -203,11 +213,12 @@ function displayData(){
     bookChart.draw( data, options);
     
     var data = new google.visualization.DataTable();
+    bookEntities = allBookEntities[allBookEntities.findIndex((item)=>{return item.asin == bookID})].entities;
 
     data.addColumn('string', 'Entity');
     data.addColumn('number', 'Score');
     data.addColumn('number', 'Salience');
-    data.addRows(allBookEntities[allBookEntities.findIndex((item)=>{return item.asin == selectedID})].entities);
+    data.addRows(bookEntities);
 
     var option = {
         title: 'Entities',
@@ -217,19 +228,19 @@ function displayData(){
     var table = new google.visualization.Table(document.getElementById('table_div'));
 
     table.draw(data, option);
-    
+
 }
 
-//DRAW REVIEWER GRAPH
+// DRAW REVIEWER GRAPH
 function displayRevData(){
 
     var results = [];
-    //Get selected option from dropdown
-    var selectedID = document.getElementById('selectReviewer').options[document.getElementById('selectReviewer').selectedIndex].value;
-    //Function to filter out revelant data from json file
-    console.log(selectedID);
+    // Get selected option from dropdown
+    userID = document.getElementById('selectReviewer').options[document.getElementById('selectReviewer').selectedIndex].value;
+    // Loop to filter out revelant data from json file
+    console.log(userID);
     reviews.forEach((item) => {
-        if (item.reviewerID == selectedID){
+        if (item.reviewerID == userID){
             var element = [new Date (item.date),item.sentimentScore]
             results.push(element)
         }
@@ -245,11 +256,12 @@ function displayRevData(){
     reviewerChart.draw(data, options);
 
     var data = new google.visualization.DataTable();
+    userEntities = allReviewerEntities[allReviewerEntities.findIndex((item)=>{return item.reviewerID == userID})].entities;
 
     data.addColumn('string', 'Entity');
     data.addColumn('number', 'Score');
     data.addColumn('number', 'Salience');
-    data.addRows(allReviewerEntities[allReviewerEntities.findIndex((item)=>{return item.reviewerID == selectedID})].entities);
+    data.addRows(userEntities);
 
     var option = {
     title: 'Entities',
@@ -259,6 +271,23 @@ function displayRevData(){
     var table = new google.visualization.Table(document.getElementById('reviewer_table_div'));
 
     table.draw(data, option);
+
+}
+
+// CHECKING USER-TO-BOOK MATCH
+
+function checkMatch(){
+
+    if (bookID == null){
+        // place holder for error message displayed to screen
+        console.log("choose a book")}
+    else {
+        if (userID == null){
+            // place holder for error message displayed to screen
+            console.log("choose a user")}
+        else {
+            // place holder for match calculating code
+            console.log("the match is 0%")}}
 
 }
 
