@@ -1,4 +1,4 @@
-reviews =
+var reviews =
 [
     {
       "asin": "B000FA64PA",
