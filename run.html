@@ -3,7 +3,7 @@
     <head>
         <!--ACCESS GOOGLE CHARTS AND OTHER DEPENDENTS-->
         <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
-        <script type="text/javascript" src="./data.js"></script>
+        <script type="text/javascript" src="./db3.js"></script>
 
         <meta charset="utf-8" />
         <link rel="icon" type="image/png" href="assets/img/favicon.ico">
@@ -277,7 +277,7 @@
             // Loop to filter out revelant data from json file
             reviews.forEach(item => {
                 if (item.asin == bookID){
-                    var element = [new Date (item.date),item.sentimentScore, 'Book reviewer: ' + item.reviewerID + '\n' + 'Sentiment Score:'+ Math.round(item.sentimentScore*100)/100]
+                    var element = [new Date (item.date),item.sentimentScore,'Book reviewer: ' + item.reviewerID + '\n' + 'Sentiment Score:'+ Math.round(item.sentimentScore*100)/100,(item.rating-3)/2]
                     results.push(element)
                 }
             });
@@ -287,9 +287,9 @@
             var data = new google.visualization.DataTable();
             data.addColumn('date', 'X');
             data.addColumn('number', 'Sentiment');
-            data.addColumn('number', 'Ratings');
             // A column for custom tooltip content
             data.addColumn({type: 'string', role: 'tooltip'});
+            data.addColumn('number', 'Ratings');
             data.addRows(results);
 
             bookChart = new google.visualization.LineChart(document.getElementById('chart_div'));
