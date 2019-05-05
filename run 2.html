@@ -1,0 +1,384 @@
+<html>
+    <head>
+        <!--ACCESS GOOGLE CHARTS AND OTHER DEPENDENTS-->
+        <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+        <script type="text/javascript" src="./data.js"></script>
+
+        <meta charset="utf-8" />
+        <link rel="icon" type="image/png" href="assets/img/favicon.ico">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+
+        <title>The Review Analyzer</title>
+
+        <meta content='width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0' name='viewport' />
+          <meta name="viewport" content="width=device-width" />
+
+
+          <!-- Bootstrap core CSS     -->
+          <link href="assets/css/bootstrap.min.css" rel="stylesheet" />
+
+          <!-- Animation library for notifications   -->
+          <link href="assets/css/animate.min.css" rel="stylesheet"/>
+
+          <!--  Light Bootstrap Table core CSS    -->
+          <link href="assets/css/light-bootstrap-dashboard.css?v=1.4.0" rel="stylesheet"/>
+
+
+          <!--  CSS for Demo Purpose, don't include it in your project     -->
+          <link href="assets/css/demo.css" rel="stylesheet" />
+
+
+          <!--     Fonts and icons     -->
+          <link href="http://maxcdn.bootstrapcdn.com/font-awesome/4.2.0/css/font-awesome.min.css" rel="stylesheet">
+          <link href='http://fonts.googleapis.com/css?family=Roboto:400,700,300' rel='stylesheet' type='text/css'>
+          <link href="assets/css/pe-icon-7-stroke.css" rel="stylesheet" />
+          <h1>Review Analyzer</h1>
+
+    </head>
+            
+        <div class="content">
+            <div class="container-fluid">
+                <div class="row">
+                    <div class="col-md-10">
+                        <div class="card">
+                            <div class="header">
+                                 <h4 class="title">Product Sentiment</h4>
+                                <p class="category">Overall sentiment over time</p>
+                            </div>
+                            <!-- line chart info -->
+                            <div class="content">
+        <!--UNIQUE BOOK GRAPHICS-->
+        <h5>Find a book:</h5>
+        <select id="selectBook" onchange="displayData()">
+            <option>--choose a book--</option>
+        </select>
+        <table class="columns">
+              <tr>
+                <td><div id="chart_div" style="border: 1px solid #ccc"></div></td>
+                <td><div id="table_div" style="border: 1px solid #ccc"></div></td>
+              </tr>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+        <div class="content">
+            <div class="container-fluid">
+                <div class="row">
+                    <div class="col-md-10">
+                        <div class="card">
+                            <div class="header">
+                                 <h4 class="title">Reviewer Sentiment</h4>
+                                <p class="category">Overall sentiment over time</p>
+                            </div>
+                            <!-- line chart info -->
+                            <div class="content">
+        <!--UNIQUE USER GRAPHICS-->
+        <h5>Find a Reviewer:</h5>
+        <select id="selectReviewer" onchange="displayRevData()">
+            <option>--choose a user--</option>
+        </select>
+        <table class="columns">
+            <tr>
+                <td><div id="reviewer_chart_div" style="border: 1px solid #ccc"></div></td>
+                <td><div id="reviewer_table_div" style="border: 1px solid #ccc"></div></td>
+            </tr>
+        </table>
+      </div>
+    </div>
+</div>
+</div>
+            </div>
+        </div>
+
+        <div class="content">
+            <div class="container-fluid">
+                <div class="row">
+                    <div class="col-md-10">
+                        <div class="card">
+                            <div class="header">
+                                 <h4 class="title">Book Recommender</h4>
+                                <p class="category">Match score between product and reviewer</p>
+                            </div>
+                            <!-- line chart info -->
+                            <div class="content">
+        <!--MATCH CALCULATE BUTTON-->
+
+        <button onclick="checkMatch()">Will you like this book?</button>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+</div>
+    </body>
+    
+    <body>
+        <div id="curve_chart" style="width: 900px; height: 500px"></div>
+      </body>
+<script>
+
+
+// DISPLAY CHARTS
+google.charts.load('current', {packages: ['corechart','table']});
+
+
+// POPULATE BOOK DROPDOWN
+var select = document.getElementById("selectBook");
+// EXTRACT ASIN NUMBERS
+var Ids = reviews.map((review) => {
+    return review.asin;
+});
+// EXTRACT BOOK TITLES
+var titles = reviews.map((review) => {
+    return review.title;
+});
+uniqueIds = [...new Set(Ids)]
+bookTitles = [...new Set(titles)];
+
+// LOOP THORUGH bookTitles TO POPULATE DROPDOWN
+for(var i = 0; i < bookTitles.length; i++){
+    var opt = bookTitles[i];
+    var el = document.createElement("option");
+    el.textContent = opt; //define text content of element to be bookTitles elements
+    el.value = opt;
+    select.appendChild(el)
+}
+
+
+// POPULATE REVIEWER DROPDOWN
+var userSelect = document.getElementById("selectReviewer");
+var Ids = reviews.map((review) => {
+    return review.reviewerID;
+});
+reviewerIds = [...new Set(Ids)]
+
+//LOOP THROUGH reviewerIds TO POPULATE DROPDOWN
+for(var i = 0; i < reviewerIds.length; i++){
+    var opt = reviewerIds[i];
+    var el = document.createElement("option");
+    el.textContent = opt; //define text content of element to be reviewerIds elements
+    el.value = opt;
+    userSelect.appendChild(el)
+}
+
+// INITIALIZE CHART SETTINGS
+var bookChart;
+var reviewerChart;
+var options = {
+
+    chart: {
+    title: 'Sentiment',
+    subtitle: 'in millions of dollars (USD)'
+    },
+    width: 1000,
+    height: 500,
+    hAxis: {
+    title: 'Date'
+    },
+    vAxis: {
+    title: 'Sentiment'
+    },
+    colors: ['#1c91c0', 'red'],
+    trendlines: {
+    0: {width: 5, type: 'linear', color: '#111', opacity: .3}
+    },
+    curveType: 'function',
+
+};
+
+// BOOK ENTITY COMPLIATION
+var allBookEntities = uniqueIds.map((book) => {
+    var bookReviews = reviews.filter((rev) => {return rev.asin === book});
+    var entityData = {};
+    entityData.asin = book;
+    var bookEntities = [];
+    bookReviews.forEach((book) => {
+        book.entities.forEach((entity) => {
+            var found = false;
+            for(var i = 0; i < bookEntities.length; i++) {
+                if (bookEntities[i].name === entity.name) {
+                    found = true;
+                    var sali = entity.salience;
+                    bookEntities[i].count += 1;
+                    bookEntities[i].weight += entity.score * sali;
+                    bookEntities[i].saliSum += sali;
+                    bookEntities[i].salience = bookEntities[i].saliSum/(bookEntities[i].count);
+                    bookEntities[i].score = bookEntities[i].weight/bookEntities[i].saliSum;
+                    break;
+                }
+            }
+            if(!found){
+                entity.count = 1;
+                entity.weight = entity.salience * entity.score;
+                entity.saliSum = entity.salience;
+                bookEntities.push(entity);
+            }
+        });
+    });
+    bookEntities = bookEntities.map((book) => {
+        return [book.name, book.score, {v:book.salience,f: Math.round(book.salience*10000)/100 + '%'}]
+    });
+    entityData.entities = bookEntities;
+    return entityData
+});
+
+// USER ENTITY COMPILATION *** Sort based on number of reviews
+var allReviewerEntities = reviewerIds.map((user) => {
+    var userReviews = reviews.filter((rev) => {return rev.reviewerID === user});
+    var userData = {};
+    userData.reviewerID = user;
+    userData.numBooksRead = userReviews.length;
+    var userEntities = [];
+    userReviews.forEach((user) => {
+        user.entities.forEach((entity) => {
+            var found = false;
+            for(var i = 0; i < userEntities.length; i++) {
+                if (userEntities[i].name === entity.name) {
+                    found = true;
+                    var sali = entity.salience;
+                    userEntities[i].count += 1;
+                    userEntities[i].weight += entity.score * sali;
+                    userEntities[i].saliSum += sali;
+                    userEntities[i].salience = userEntities[i].saliSum/(userEntities[i].count);
+                    userEntities[i].score = userEntities[i].weight/userEntities[i].saliSum;
+                    console.log(userEntities[i].salience)
+                    break;
+                }
+            }
+            if(!found){
+                entity.count = 1;
+                entity.weight = entity.salience * entity.score;
+                entity.saliSum = entity.salience;
+                userEntities.push(entity);
+            }
+        });
+    }); 
+    userEntities = userEntities.map((user) => {
+        return [user.name, user.score, {v:user.salience,f: Math.round(user.salience*10000)/100 + '%'}]
+    });
+    userData.entities = userEntities;
+    return userData
+});
+allReviewerEntities = allReviewerEntities.sort((a,b)=>{return b.numBooksRead - a.numBooksRead});
+
+// Initialize selected book and user ids
+var bookID;
+var userID;
+var bookEntities;
+var userEntities;
+
+// UPDATE GRAPH
+function displayData(){
+
+    var results = [];
+    // Get selected option from dropdown
+    bookID = document.getElementById('selectBook').options[document.getElementById('selectBook').selectedIndex].value;
+    bookID = uniqueIds[bookTitles.findIndex((item)=>{return item === bookID})];
+    // Loop to filter out revelant data from json file
+    console.log(bookID);
+    reviews.forEach(item => {
+        if (item.asin == bookID){
+            var element = [new Date (item.date),item.sentimentScore, 'Book reviewer: ' + item.reviewerID + '\n' + 'Sentiment Score:'+ Math.round(item.sentimentScore*100)/100]
+            results.push(element)
+        }
+    });
+    results = results.sort((a,b) => {return a[0]-b[0]});
+    console.log(results)
+    var data = new google.visualization.DataTable();
+    data.addColumn('date', 'X');
+    data.addColumn('number', 'Sentiment');
+     // A column for custom tooltip content
+    data.addColumn({type: 'string', role: 'tooltip'});
+    data.addRows(results);
+
+    bookChart = new google.visualization.LineChart(document.getElementById('chart_div'));
+
+    bookChart.draw( data, options);
+    
+    var data = new google.visualization.DataTable();
+    bookEntities = allBookEntities[allBookEntities.findIndex((item)=>{return item.asin == bookID})].entities;
+
+    data.addColumn('string', 'Entity');
+    data.addColumn('number', 'Score');
+    data.addColumn('number', 'Salience');
+    data.addRows(bookEntities);
+
+    var option = {
+        title: 'Entities',
+        width: 300,
+        height: 500
+    };
+    var table = new google.visualization.Table(document.getElementById('table_div'));
+
+    table.draw(data, option);
+
+}
+
+// DRAW REVIEWER GRAPH
+function displayRevData(){
+
+    var results = [];
+    // Get selected option from dropdown
+    userID = document.getElementById('selectReviewer').options[document.getElementById('selectReviewer').selectedIndex].value;
+    // Loop to filter out revelant data from json file
+    console.log(userID);
+    reviews.forEach((item) => {
+        if (item.reviewerID == userID){
+            var element = [new Date (item.date),item.sentimentScore,'Book: ' + item.title + '\n' + 'Sentiment Score:'+ Math.round(item.sentimentScore*100)/100]
+            results.push(element)
+        }
+    })
+    results = results.sort((a,b) => {return a[0]-b[0]});
+    console.log(results)
+    var data = new google.visualization.DataTable();
+    data.addColumn('date', 'X');
+    data.addColumn('number', 'Product');
+    data.addColumn({type: 'string', role: 'tooltip'});
+    data.addRows(results);
+
+    reviewerChart = new google.visualization.LineChart(document.getElementById('reviewer_chart_div'));
+    reviewerChart.draw(data, options);
+
+    var data = new google.visualization.DataTable();
+    userEntities = allReviewerEntities[allReviewerEntities.findIndex((item)=>{return item.reviewerID == userID})].entities;
+
+    data.addColumn('string', 'Entity');
+    data.addColumn('number', 'Score');
+    data.addColumn('number', 'Salience');
+    
+    data.addRows(userEntities);
+
+    var option = {
+    title: 'Entities',
+    width: 300,
+    height: 500
+    };
+    var table = new google.visualization.Table(document.getElementById('reviewer_table_div'));
+
+    table.draw(data, option);
+
+}
+
+// CHECKING USER-TO-BOOK MATCH
+
+function checkMatch(){
+
+    if (bookID == null){
+        // place holder for error message displayed to screen
+        console.log("choose a book")}
+    else {
+        if (userID == null){
+            // place holder for error message displayed to screen
+            console.log("choose a user")}
+        else {
+            // place holder for match calculating code
+            console.log("the match is 0%")}}
+
+}
+
+</script>
+</html>
+  
