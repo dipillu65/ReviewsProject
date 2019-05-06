@@ -261,6 +261,7 @@
         allReviewerEntities = allReviewerEntities.sort((a,b)=>{return b.numBooksRead - a.numBooksRead});
 
         // Initialize selected book and user ids
+        var bookTitle;
         var bookID;
         var userID;
         var bookEntities;
@@ -271,8 +272,8 @@
 
             var results = [];
             // Get selected option from dropdown
-            bookID = document.getElementById('selectBook').options[document.getElementById('selectBook').selectedIndex].value;
-            bookID = uniqueIds[bookTitles.findIndex((item)=>{return item === bookID})];
+            bookTitle = document.getElementById('selectBook').options[document.getElementById('selectBook').selectedIndex].value;
+            bookID = uniqueIds[bookTitles.findIndex((item)=>{return item === bookTitle})];
             
             // Loop to filter out revelant data from json file
             reviews.forEach(item => {
@@ -374,7 +375,7 @@
                 if (userID == null){
                     window.alert("select a user from dropdown");}
                 else {
-                    window.alert(userID + " has a " + Math.round(Math.random()*1000)/10+"% match with " + bookID);}}
+                    window.alert(userID + " has a " + Math.round(Math.random()*1000)/10+"% match with " + bookTitle);}}
 
         }
 
